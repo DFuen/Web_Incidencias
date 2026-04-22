@@ -1,85 +1,124 @@
 <template>
-  <div class="profesor-container">
-    <h1>Mis Incidencias</h1>
-    
-    <div class="form-section">
-      <button @click="mostrarFormulario = !mostrarFormulario" class="btn-crear">
-        {{ mostrarFormulario ? 'Cancelar' : '+ Crear Nueva Incidencia' }}
-      </button>
-      
-      <div v-if="mostrarFormulario" class="formulario">
-        <h2>Reportar Nueva Incidencia</h2>
-        <form @submit.prevent="crearIncidencia">
-          <div class="form-group">
-            <label>Ubicación (Aula) *</label>
-            <select v-model="nueva.ubicacionId" @blur="validarUbicacion" class="form-input">
-              <option value="">Selecciona una ubicación</option>
-              <option v-for="u in ubicaciones" :key="u.id" :value="u.id">
-                {{ u.codigo }} - {{ u.descripcion }}
-              </option>
-            </select>
-            <span v-if="ubicacionError" class="error">{{ ubicacionError }}</span>
+  <div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-cyan-50 px-4 py-6 sm:px-6">
+    <div class="mx-auto max-w-6xl space-y-6">
+      <h1 class="border-b-4 border-emerald-600 pb-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+        Mis Incidencias
+      </h1>
+
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <button
+          @click="mostrarFormulario = !mostrarFormulario"
+          class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+        >
+          {{ mostrarFormulario ? 'Cancelar' : '+ Crear Nueva Incidencia' }}
+        </button>
+
+        <div v-if="mostrarFormulario" class="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+          <h2 class="text-lg font-semibold text-slate-800">Reportar Nueva Incidencia</h2>
+          <form @submit.prevent="crearIncidencia" class="mt-4 space-y-4">
+            <div>
+              <label class="mb-1 block text-sm font-semibold text-slate-700">Ubicacion (Aula) *</label>
+              <select
+                v-model="nueva.ubicacionId"
+                @blur="validarUbicacion"
+                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+              >
+                <option value="">Selecciona una ubicacion</option>
+                <option v-for="u in ubicaciones" :key="u.id" :value="u.id">
+                  {{ u.codigo }} - {{ u.descripcion }}
+                </option>
+              </select>
+              <span v-if="ubicacionError" class="mt-1 block text-xs font-medium text-rose-600">{{ ubicacionError }}</span>
+            </div>
+
+            <div>
+              <label class="mb-1 block text-sm font-semibold text-slate-700">Categoria *</label>
+              <select
+                v-model="nueva.categoriaId"
+                @blur="validarCategoria"
+                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+              >
+                <option value="">Selecciona una categoria</option>
+                <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+              </select>
+              <span v-if="categoriaError" class="mt-1 block text-xs font-medium text-rose-600">{{ categoriaError }}</span>
+            </div>
+
+            <div>
+              <label class="mb-1 block text-sm font-semibold text-slate-700">Descripcion del Problema *</label>
+              <textarea
+                v-model="nueva.descripcion"
+                @blur="validarDescripcion"
+                placeholder="Describe el problema en detalle"
+                class="min-h-[110px] w-full resize-y rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+              ></textarea>
+              <span v-if="descripcionError" class="mt-1 block text-xs font-medium text-rose-600">{{ descripcionError }}</span>
+            </div>
+
+            <div>
+              <label class="mb-1 block text-sm font-semibold text-slate-700">Foto (Opcional)</label>
+              <input
+                type="file"
+                @change="onFileChange"
+                accept="image/png, image/jpeg"
+                class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-200 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-slate-700 hover:file:bg-slate-300"
+              />
+            </div>
+
+            <button
+              type="submit"
+              class="rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
+            >
+              Enviar Incidencia
+            </button>
+
+            <span v-if="formError" class="block rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{{ formError }}</span>
+            <span
+              v-if="formSuccess"
+              class="block rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700"
+            >
+              {{ formSuccess }}
+            </span>
+          </form>
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <h2 class="text-xl font-semibold text-slate-800">Historico de Mis Incidencias</h2>
+        <div
+          v-if="incidencias.length === 0"
+          class="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-slate-600"
+        >
+          <p>No tienes incidencias reportadas aun.</p>
+        </div>
+
+        <div v-else class="mt-4 overflow-hidden rounded-xl border border-slate-200">
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 text-sm">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="px-4 py-3 text-left font-semibold text-slate-700">Ubicacion</th>
+                  <th class="px-4 py-3 text-left font-semibold text-slate-700">Categoria</th>
+                  <th class="px-4 py-3 text-left font-semibold text-slate-700">Descripcion</th>
+                  <th class="px-4 py-3 text-left font-semibold text-slate-700">Estado</th>
+                  <th class="px-4 py-3 text-left font-semibold text-slate-700">Fecha Creacion</th>
+                  <th class="px-4 py-3 text-left font-semibold text-slate-700">Fecha Resolucion</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 bg-white">
+                <tr v-for="inc in incidencias" :key="inc.id" class="hover:bg-slate-50">
+                  <td class="px-4 py-3 text-slate-700">{{ inc.ubicacion.codigo }} - {{ inc.ubicacion.descripcion }}</td>
+                  <td class="px-4 py-3 text-slate-700">{{ inc.categoria.nombre }}</td>
+                  <td class="max-w-sm truncate px-4 py-3 text-slate-700">{{ inc.descripcion }}</td>
+                  <td class="px-4 py-3"><span :class="estadoBadgeClass(inc.estado)">{{ inc.estado }}</span></td>
+                  <td class="px-4 py-3 text-slate-600">{{ formatFecha(inc.fechaCreacion) }}</td>
+                  <td class="px-4 py-3 text-slate-600">{{ inc.fechaResolucion ? formatFecha(inc.fechaResolucion) : '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-
-          <div class="form-group">
-            <label>Categoría *</label>
-            <select v-model="nueva.categoriaId" @blur="validarCategoria" class="form-input">
-              <option value="">Selecciona una categoría</option>
-              <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nombre }}</option>
-            </select>
-            <span v-if="categoriaError" class="error">{{ categoriaError }}</span>
-          </div>
-
-          <div class="form-group">
-            <label>Descripción del Problema *</label>
-            <textarea 
-              v-model="nueva.descripcion" 
-              @blur="validarDescripcion"
-              placeholder="Describe el problema en detalle"
-              class="form-textarea"
-            ></textarea>
-            <span v-if="descripcionError" class="error">{{ descripcionError }}</span>
-          </div>
-
-          <div class="form-group">
-            <label>Foto (Opcional)</label>
-            <input type="file" @change="onFileChange" accept="image/png, image/jpeg" class="form-input" />
-          </div>
-
-          <button type="submit" class="btn-submit">Enviar Incidencia</button>
-          <span v-if="formError" class="error">{{ formError }}</span>
-          <span v-if="formSuccess" class="success">{{ formSuccess }}</span>
-        </form>
-      </div>
-    </div>
-
-    <div class="historico-section">
-      <h2>Histórico de Mis Incidencias</h2>
-      <div v-if="incidencias.length === 0" class="empty-state">
-        <p>No tienes incidencias reportadas aún.</p>
-      </div>
-      <table v-else class="incidencias-table">
-        <thead>
-          <tr>
-            <th>Ubicación</th>
-            <th>Categoría</th>
-            <th>Descripción</th>
-            <th>Estado</th>
-            <th>Fecha Creación</th>
-            <th>Fecha Resolución</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="inc in incidencias" :key="inc.id">
-            <td>{{ inc.ubicacion.codigo }} - {{ inc.ubicacion.descripcion }}</td>
-            <td>{{ inc.categoria.nombre }}</td>
-            <td>{{ inc.descripcion.substring(0, 50) }}...</td>
-            <td><span class="estado-badge" :class="inc.estado">{{ inc.estado }}</span></td>
-            <td>{{ formatFecha(inc.fechaCreacion) }}</td>
-            <td>{{ inc.fechaResolucion ? formatFecha(inc.fechaResolucion) : '-' }}</td>
-          </tr>
-        </tbody>
-      </table>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -187,198 +226,14 @@ const crearIncidencia = async () => {
 const formatFecha = (fecha) => {
   return new Date(fecha).toLocaleString('es-ES')
 }
+
+const estadoBadgeClass = (estado) => {
+  const base = 'inline-flex rounded-md px-2.5 py-1 text-xs font-semibold'
+
+  if (estado === 'PENDIENTE') return `${base} bg-amber-200 text-amber-900`
+  if (estado === 'EN_PROCESO') return `${base} bg-cyan-200 text-cyan-900`
+  if (estado === 'REALIZADA') return `${base} bg-emerald-200 text-emerald-900`
+
+  return `${base} bg-slate-200 text-slate-800`
+}
 </script>
-
-<style scoped>
-.profesor-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-h1 {
-  color: #333;
-  border-bottom: 3px solid #007bff;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-}
-
-h2 {
-  color: #555;
-  margin-top: 30px;
-  margin-bottom: 15px;
-}
-
-.form-section {
-  margin: 20px 0;
-}
-
-.btn-crear {
-  background-color: #28a745;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.btn-crear:hover {
-  background-color: #218838;
-}
-
-.formulario {
-  background-color: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  margin-top: 15px;
-  border: 1px solid #dee2e6;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: #333;
-}
-
-.form-input, .form-textarea {
-  display: block;
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 14px;
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 100px;
-}
-
-.form-input:focus, .form-textarea:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
-}
-
-.error {
-  color: #dc3545;
-  font-size: 12px;
-  margin-top: 3px;
-  display: block;
-}
-
-.success {
-  color: #28a745;
-  font-size: 14px;
-  margin-top: 5px;
-  display: block;
-  padding: 10px;
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  border-radius: 4px;
-}
-
-.btn-submit {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.btn-submit:hover {
-  background-color: #0056b3;
-}
-
-.historico-section {
-  margin-top: 40px;
-}
-
-.empty-state {
-  background-color: #f8f9fa;
-  padding: 30px;
-  border-radius: 4px;
-  text-align: center;
-  color: #666;
-}
-
-.incidencias-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.incidencias-table thead {
-  background-color: #f8f9fa;
-}
-
-.incidencias-table th {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 2px solid #dee2e6;
-  font-weight: bold;
-  color: #333;
-}
-
-.incidencias-table td {
-  padding: 12px;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.incidencias-table tbody tr:hover {
-  background-color: #f9f9f9;
-}
-
-.estado-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
-  color: white;
-  display: inline-block;
-}
-
-.estado-badge.PENDIENTE {
-  background-color: #ffc107;
-  color: #333;
-}
-
-.estado-badge.EN_PROCESO {
-  background-color: #17a2b8;
-}
-
-.estado-badge.REALIZADA {
-  background-color: #28a745;
-}
-
-@media (max-width: 768px) {
-  .profesor-container {
-    padding: 10px;
-  }
-
-  .incidencias-table {
-    font-size: 12px;
-  }
-
-  .incidencias-table th, .incidencias-table td {
-    padding: 8px;
-  }
-
-  .btn-crear, .btn-submit {
-    width: 100%;
-  }
-}
-</style>

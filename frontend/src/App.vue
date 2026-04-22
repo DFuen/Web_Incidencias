@@ -1,8 +1,16 @@
 <template>
   <div>
-    <header v-if="isAuthenticated && route.path !== '/'" class="topbar">
-      <span class="user-label">{{ currentUser }}</span>
-      <button class="logout-btn" @click="logout">Cerrar sesion</button>
+    <header
+      v-if="isAuthenticated && route.path !== '/'"
+      class="flex items-center justify-end gap-3 border-b border-slate-200 bg-white px-5 py-3"
+    >
+      <span class="text-sm text-slate-700">{{ currentUser }}</span>
+      <button
+        class="rounded-lg bg-rose-600 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
+        @click="logout"
+      >
+        Cerrar sesion
+      </button>
     </header>
 
     <router-view />
@@ -47,34 +55,3 @@ const logout = () => {
   router.push('/')
 }
 </script>
-
-<style scoped>
-.topbar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #ffffff;
-}
-
-.user-label {
-  color: #374151;
-  font-size: 0.95rem;
-}
-
-.logout-btn {
-  border: none;
-  background: #dc2626;
-  color: #fff;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.logout-btn:hover {
-  background: #b91c1c;
-}
-</style>
