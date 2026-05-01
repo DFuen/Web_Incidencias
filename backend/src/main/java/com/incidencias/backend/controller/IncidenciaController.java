@@ -1,5 +1,6 @@
 package com.incidencias.backend.controller;
 
+import com.incidencias.backend.controller.dto.CambioEstadoRequest;
 import com.incidencias.backend.model.Incidencia;
 import com.incidencias.backend.service.IncidenciaService;
 import com.incidencias.backend.service.UsuarioService;
@@ -17,14 +18,20 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @Validated
 @RequestMapping("/api/incidencias")
 public class IncidenciaController {
     private final IncidenciaService incidenciaService;
+    private final UsuarioService usuarioService;
+
     public IncidenciaController(IncidenciaService incidenciaService, UsuarioService usuarioService) {
         this.incidenciaService = incidenciaService;
+        this.usuarioService = usuarioService;
     }
 
     @GetMapping
@@ -66,9 +73,23 @@ public class IncidenciaController {
     }
 
     @PutMapping("/{id}/estado")
-    public Incidencia cambiarEstado(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        String nuevoEstado = body.get("estado");
-        return incidenciaService.cambiarEstado(id, EstadoIncidencia.valueOf(nuevoEstado));
+    public Incidencia cambiarEstado(@PathVariable Long id, @Valid @RequestBody CambioEstadoRequest body, Authentication authentication) {
+        EstadoIncidencia nuevoEstado;
+        try {
+            nuevoEstado = EstadoIncidencia.valueOf(body.getEstado().trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Estado no válido");
+        }
+
+        String emailUsuario = authentication != null ? authentication.getName() : null;
+        var usuarioActual = usuarioService.findByEmail(emailUsuario)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario autenticado no encontrado"));
+
+        Incidencia incidenciaActualizada = incidenciaService.cambiarEstado(id, nuevoEstado, body.getDescripcionSolucion(), usuarioActual);
+        if (incidenciaActualizada == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Incidencia no encontrada");
+        }
+        return incidenciaActualizada;
     }
 
     @GetMapping("/dashboard")

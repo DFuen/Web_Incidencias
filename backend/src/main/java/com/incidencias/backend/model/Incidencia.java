@@ -1,5 +1,6 @@
 package com.incidencias.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import jakarta.validation.constraints.*;
@@ -41,7 +42,16 @@ public class Incidencia {
     @NotNull(message = "El usuario creador es obligatorio")
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_creador_id")
+    @JsonIgnoreProperties({"password"})
     private Usuario usuarioCreador;
+
+    @ManyToOne
+    @JoinColumn(name = "usuario_encargado_id")
+    @JsonIgnoreProperties({"password"})
+    private Usuario usuarioEncargado;
+
+    @Column(columnDefinition = "TEXT")
+    private String descripcionSolucion;
 
     public enum EstadoIncidencia {
         PENDIENTE,

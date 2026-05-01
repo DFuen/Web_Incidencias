@@ -5,6 +5,7 @@ import com.incidencias.backend.service.UsuarioService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.annotation.Validated;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -20,6 +21,14 @@ public class UsuarioController {
     @GetMapping("/email/{email}")
     public Optional<Usuario> getByEmail(@PathVariable String email) {
         return usuarioService.findByEmail(email);
+    }
+
+    @GetMapping
+    public List<Usuario> getAll(@RequestParam(required = false) String rol) {
+        if (rol != null && !rol.isBlank()) {
+            return usuarioService.findByRol(rol);
+        }
+        return usuarioService.findByRol("administrador");
     }
 
     @PostMapping

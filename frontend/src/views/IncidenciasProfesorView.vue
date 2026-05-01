@@ -201,11 +201,26 @@ const crearIncidencia = async () => {
       headers: { Authorization: 'Basic ' + auth }
     })
 
+    let fotoPath = null
+    if (nueva.value.foto) {
+      const formData = new FormData()
+      formData.append('file', nueva.value.foto)
+
+      const uploadRes = await axios.post('/api/files/upload', formData, {
+        headers: {
+          Authorization: 'Basic ' + auth,
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      fotoPath = typeof uploadRes.data === 'string' ? uploadRes.data : null
+    }
+
     const incidencia = {
       ubicacion: { id: parseInt(nueva.value.ubicacionId) },
       categoria: { id: parseInt(nueva.value.categoriaId) },
       descripcion: nueva.value.descripcion,
       usuarioCreador: { id: user.data.id },
+      foto: fotoPath,
       estado: 'PENDIENTE'
     }
 

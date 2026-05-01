@@ -84,7 +84,7 @@ const login = async () => {
       }
     })
     const usuario = response.data
-    localStorage.setItem('user', email.value)
+    localStorage.setItem('user', usuario.nombre)
     localStorage.setItem('auth', btoa(email.value + ':' + password.value))
     localStorage.setItem('rol', usuario.rol)
     window.dispatchEvent(new Event('auth-changed'))

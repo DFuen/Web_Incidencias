@@ -43,7 +43,7 @@ public class IncidenciaService {
         return incidenciaRepository.save(incidencia);
     }
 
-    public Incidencia cambiarEstado(Long id, Incidencia.EstadoIncidencia nuevoEstado) {
+    public Incidencia cambiarEstado(Long id, Incidencia.EstadoIncidencia nuevoEstado, String descripcionSolucion, Usuario usuarioActual) {
         Optional<Incidencia> incidenciaOpt = incidenciaRepository.findById(id);
         if (incidenciaOpt.isPresent()) {
             Incidencia incidencia = incidenciaOpt.get();
@@ -51,8 +51,15 @@ public class IncidenciaService {
                 throw new IllegalStateException("No se puede modificar una incidencia ya realizada");
             }
             incidencia.setEstado(nuevoEstado);
+
+            if (nuevoEstado == Incidencia.EstadoIncidencia.EN_PROCESO) {
+                incidencia.setUsuarioEncargado(usuarioActual);
+            }
+
             if (nuevoEstado == Incidencia.EstadoIncidencia.REALIZADA) {
                 incidencia.setFechaResolucion(LocalDateTime.now());
+                String solucionLimpia = descripcionSolucion != null ? descripcionSolucion.trim() : null;
+                incidencia.setDescripcionSolucion(solucionLimpia == null || solucionLimpia.isEmpty() ? null : solucionLimpia);
             }
             return incidenciaRepository.save(incidencia);
         }
