@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.form {
+  @apply flex flex-col gap-4 bg-white p-8 w-[450px] rounded-2xl font-sans;
+}
+
+.inputForm {
+  @apply border border-gray-300 rounded-lg h-12 flex items-center px-3 transition;
+}
+
+.input {
+  @apply ml-2 rounded-lg border-none w-full h-full focus:outline-none;
+}
+
+.inputForm:focus-within {
+  @apply border-blue-500;
+}
+
+.button-submit {
+  @apply mt-5 bg-gray-800 text-white text-sm font-medium rounded-lg h-12 w-full cursor-pointer;
+}
+
+.button-submit:hover {
+  @apply bg-gray-900;
+}
+
+.p {
+  @apply text-center text-black text-sm mt-2;
+}
