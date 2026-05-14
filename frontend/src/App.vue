@@ -5,12 +5,7 @@
       class="flex items-center justify-end gap-3 border-b border-slate-200 bg-white px-5 py-3"
     >
       <span class="text-sm text-slate-700">{{ currentUser }}</span>
-      <button
-        class="rounded-lg bg-rose-600 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
-        @click="logout"
-      >
-        Cerrar sesion
-      </button>
+      <LogoutButton @click="logout" />
     </header>
 
     <router-view />
@@ -20,16 +15,17 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import LogoutButton from './components/LogoutButton.vue'
 
 const route = useRoute()
 const router = useRouter()
 
 const isAuthenticated = ref(!!localStorage.getItem('auth'))
-const currentUser = ref(localStorage.getItem('user') || '')
+const currentUser = ref(localStorage.getItem('nombre') || '')
 
 const syncSessionState = () => {
   isAuthenticated.value = !!localStorage.getItem('auth')
-  currentUser.value = localStorage.getItem('user') || ''
+  currentUser.value = localStorage.getItem('nombre') || ''
 }
 
 const onAuthChanged = () => {
@@ -50,6 +46,7 @@ onBeforeUnmount(() => {
 const logout = () => {
   localStorage.removeItem('auth')
   localStorage.removeItem('user')
+  localStorage.removeItem('nombre')
   localStorage.removeItem('rol')
   window.dispatchEvent(new Event('auth-changed'))
   router.push('/')

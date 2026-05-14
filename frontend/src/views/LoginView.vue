@@ -1,40 +1,17 @@
 <template>
-  <div class="min-h-screen bg-[radial-gradient(circle_at_30%_10%,#dbeafe,transparent_35%),radial-gradient(circle_at_80%_20%,#bbf7d0,transparent_40%),linear-gradient(180deg,#f8fafc,#e2e8f0)] px-4 py-10">
-    <div class="mx-auto max-w-md rounded-3xl border border-slate-200 bg-white/95 p-8 shadow-xl backdrop-blur-sm">
-      <h2 class="mb-6 text-center text-3xl font-bold tracking-tight text-slate-900">Iniciar sesion</h2>
-      <form @submit.prevent="login" class="space-y-4">
-        <div>
-          <input
-            v-model="email"
-            type="email"
-            placeholder="Email"
-            @blur="validateEmail"
-            class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
-          />
-          <span v-if="emailError" class="mt-1 block text-xs font-medium text-rose-600">{{ emailError }}</span>
-        </div>
+  <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-100 via-white to-emerald-100 px-4">
+    
+    <LoginForm
+      :email="email"
+      :password="password"
+      :error="error"
+      :email-error="emailError"
+      :password-error="passwordError"
+      @update:email="email = $event"
+      @update:password="password = $event"
+      @submit="login"
+    />
 
-        <div>
-          <input
-            v-model="password"
-            type="password"
-            placeholder="Contrasena"
-            @blur="validatePassword"
-            class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
-          />
-          <span v-if="passwordError" class="mt-1 block text-xs font-medium text-rose-600">{{ passwordError }}</span>
-        </div>
-
-        <button
-          type="submit"
-          class="w-full rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700"
-        >
-          Entrar
-        </button>
-
-        <p v-if="error" class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{{ error }}</p>
-      </form>
-    </div>
   </div>
 </template>
 
@@ -42,6 +19,7 @@
 import { ref } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import LoginForm from '../components/LoginForm.vue'
 
 const email = ref('')
 const password = ref('')
@@ -84,7 +62,8 @@ const login = async () => {
       }
     })
     const usuario = response.data
-    localStorage.setItem('user', usuario.nombre)
+    localStorage.setItem('user', email.value)
+    localStorage.setItem('nombre', usuario.nombre)
     localStorage.setItem('auth', btoa(email.value + ':' + password.value))
     localStorage.setItem('rol', usuario.rol)
     window.dispatchEvent(new Event('auth-changed'))

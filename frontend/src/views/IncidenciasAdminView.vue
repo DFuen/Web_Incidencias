@@ -1,37 +1,18 @@
 <template>
   <div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 py-6 sm:px-6">
-    <div :class="menuExpanded ? 'mx-auto flex max-w-10xl gap-6' : 'mx-auto flex max-w-10xl flex-col gap-6'">
-      <aside :class="menuExpanded ? 'w-full shrink-0 lg:w-max' : 'w-full shrink-0'">
-        <div class="sticky top-6 w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:w-max">
-          <div class="flex items-center justify-between gap-3">
-            <h2 class="text-lg font-semibold text-slate-800">Menú</h2>
-            <button
-              @click="menuExpanded = !menuExpanded"
-              class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
-              :aria-label="menuExpanded ? 'Colapsar menú' : 'Expandir menú'"
-            >
-              <span class="text-base leading-none transition-transform duration-200" :class="menuExpanded ? 'rotate-0' : 'rotate-180'">›</span>
-            </button>
-          </div>
+    <div class="mx-auto flex max-w-[1800px] flex-col gap-6">
+  
+  <aside class="lg:sticky lg:top-6 lg:h-fit">
+    <AdminMenu
+      :menu-expanded="menuExpanded"
+      :active-admin-view="activeAdminView"
+      :admin-menu="adminMenu"
+      @toggle-menu="menuExpanded = !menuExpanded"
+      @change-view="activeAdminView = $event"
+    />
+  </aside>
 
-          <nav v-if="menuExpanded" class="mt-4 flex flex-col gap-2">
-            <button
-              v-for="item in adminMenu"
-              :key="item.id"
-              @click="activeAdminView = item.id"
-              class="flex w-full min-w-[13rem] items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-semibold whitespace-nowrap transition"
-              :class="activeAdminView === item.id
-                ? 'border-sky-500 bg-sky-50 text-sky-700'
-                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
-            >
-              <span>{{ item.label }}</span>
-              <span class="text-xs" :class="activeAdminView === item.id ? 'text-sky-500' : 'text-slate-400'">›</span>
-            </button>
-          </nav>
-        </div>
-      </aside>
-
-      <main :class="menuExpanded ? 'min-w-0 flex-1 space-y-8' : 'min-w-0 w-full space-y-8'">
+  <main class="min-w-0 flex-1 space-y-8">
         <section v-if="activeAdminView === 'dashboard'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
             <h1 class="border-b-4 border-sky-600 pb-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
@@ -50,6 +31,8 @@
                       <th class="px-4 py-3 text-left font-semibold text-slate-700">Estado Actual</th>
                       <th class="px-4 py-3 text-left font-semibold text-slate-700">Fecha Creación</th>
                       <th class="px-4 py-3 text-left font-semibold text-slate-700">Fecha Cierre</th>
+                      <th class="px-4 py-3 text-left font-semibold text-slate-700">Descripción</th>
+                      <th class="px-4 py-3 text-left font-semibold text-slate-700">Foto</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-slate-100 bg-white">
@@ -66,6 +49,35 @@
                       </td>
                       <td class="px-4 py-3 text-slate-600">{{ formatFecha(inc.fechaCreacion) }}</td>
                       <td class="px-4 py-3 text-slate-600">{{ inc.fechaResolucion ? formatFecha(inc.fechaResolucion) : '-' }}</td>
+                      <td class="px-4 py-3 align-top text-slate-700">
+                        <div>
+                          <button
+                            type="button"
+                            @click="abrirDescripcion(inc.descripcion)"
+                            class="max-w-3xs truncate text-left hover:underline"
+                          >
+                            {{ inc.descripcion }}
+                          </button>
+                          <p class="mt-1 text-xs text-slate-500">Haz clic para ver la descripción completa</p>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 text-slate-700">
+                        <div>
+                          <button
+                            v-if="inc.foto && !fotoErrorMap[inc.id]"
+                            type="button"
+                            @click="abrirFoto(inc.foto)"
+                          >
+                            <img
+                              :src="getFotoUrl(inc.foto)"
+                              alt="Foto incidencia"
+                              class="h-15 w-15 rounded object-cover shadow-sm transition hover:scale-105"
+                            />
+                          </button>
+                          <p v-if="inc.foto" class="mt-1 text-xs text-slate-500">Haz clic para ampliar la foto</p>
+                          <span v-else class="text-xs text-slate-500">No proporcionado</span>
+                        </div>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -223,87 +235,132 @@
             <p>No hay incidencias que coincidan con los filtros aplicados.</p>
           </div>
 
-          <div v-else class="mt-4 overflow-hidden rounded-xl border border-slate-200">
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-slate-200 text-sm">
-                <thead class="bg-slate-50">
-                  <tr>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700">Ubicación</th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700">Categoría</th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700">Profesor</th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700">Descripción</th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700">Imagen</th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700">Estado</th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700">Encargado</th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700">Fecha Creación</th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700">Fecha Cierre</th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700">Solución</th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 bg-white">
-                  <tr v-for="inc in incidenciasFilteradas" :key="inc.id" class="hover:bg-slate-50">
-                    <td class="px-4 py-3 text-slate-700">{{ inc.ubicacion.codigo }} - {{ inc.ubicacion.descripcion }}</td>
-                    <td class="px-4 py-3 text-slate-700">{{ inc.categoria.nombre }}</td>
-                    <td class="px-4 py-3 text-slate-700">{{ inc.usuarioCreador?.nombre || '-' }}</td>
-                    <td class="px-4 py-3 align-top text-slate-700">
-                      <button
-                        type="button"
-                        @click="abrirDescripcion(inc.descripcion)"
-                        class="max-w-3xs truncate text-left hover:underline"
-                      >
-                        {{ inc.descripcion }}
-                      </button>
-                    </td>
-                    <td class="px-4 py-3 text-slate-700">
-                      <button v-if="inc.foto && !fotoErrorMap[inc.id]" type="button" @click="abrirFoto(inc.foto)">
-                        <img
-                          :src="getFotoUrl(inc.foto)"
-                          alt="Foto incidencia"
-                          class="h-10 w-10 rounded object-cover shadow-sm transition hover:scale-105"
-                          @error="marcarFotoError(inc.id)"
-                        />
-                      </button>
-                      <span v-else class="text-xs text-slate-500">No proporcionado</span>
-                    </td>
-                    <td class="px-4 py-3">
-                      <span :class="estadoBadgeClass(inc.estado)">{{ inc.estado }}</span>
-                    </td>
-                    <td class="px-4 py-3 text-slate-700">{{ inc.usuarioEncargado?.nombre || '-' }}</td>
-                    <td class="px-4 py-3 text-slate-600">{{ formatFecha(inc.fechaCreacion) }}</td>
-                    <td class="px-4 py-3 text-slate-600">{{ inc.fechaResolucion ? formatFecha(inc.fechaResolucion) : '-' }}</td>
-                    <td class="px-4 py-3 align-top text-slate-600">
-                      <button
-                        v-if="inc.descripcionSolucion"
-                        type="button"
-                        @click="abrirDescripcion(inc.descripcionSolucion)"
-                        class="max-w-3xs truncate text-left hover:underline"
-                      >
-                        {{ inc.descripcionSolucion }}
-                      </button>
-                      <span v-else>-</span>
-                    </td>
-                    <td class="px-4 py-3">
-                      <button
-                        v-if="inc.estado === 'PENDIENTE'"
-                        @click="cambiarEstado(inc, 'EN_PROCESO')"
-                        class="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-700"
-                      >
-                        En Proceso
-                      </button>
-                      <template v-else-if="inc.estado === 'EN_PROCESO'">
+          <div v-else class="mt-4">
+            <!-- Tarjetas para dispositivos móviles -->
+            <div class="block md:hidden space-y-4">
+              <div
+                v-for="inc in incidenciasFilteradas"
+                :key="inc.id"
+                class="card w-full h-auto bg-white shadow-[0px_2px_4px_rgba(0,0,0,0.4),0px_7px_13px_-3px_rgba(0,0,0,0.3),0px_-3px_0px_inset_rgba(0,0,0,0.2)] p-6"
+              >
+                <div class="flex justify-between items-center">
+                  <h3 class="text-lg font-semibold text-slate-800">{{ inc.ubicacion.codigo }} - {{ inc.ubicacion.descripcion }}</h3>
+                  <span :class="estadoBadgeClass(inc.estado)">{{ inc.estado }}</span>
+                </div>
+                <p class="mt-2 text-sm text-slate-600"><strong>Categoría:</strong> {{ inc.categoria.nombre }}</p>
+                <p class="text-sm text-slate-600"><strong>Profesor:</strong> {{ inc.usuarioCreador?.nombre || '-' }}</p>
+                <p class="text-sm text-slate-600"><strong>Encargado:</strong> {{ inc.usuarioEncargado?.nombre || '-' }}</p>
+                <p class="text-sm text-slate-600"><strong>Fecha Creación:</strong> {{ formatFecha(inc.fechaCreacion) }}</p>
+                <p class="text-sm text-slate-600"><strong>Fecha Cierre:</strong> {{ inc.fechaResolucion ? formatFecha(inc.fechaResolucion) : '-' }}</p>
+                <p class="mt-2 text-sm text-slate-600"><strong>Descripción del Problema:</strong></p>
+                <p class="text-left text-slate-700 whitespace-pre-wrap">{{ inc.descripcion }}</p>
+                <p v-if="inc.descripcionSolucion" class="mt-2 text-sm text-slate-600"><strong>Descripción de la Solución:</strong></p>
+                <p v-if="inc.descripcionSolucion" class="text-left text-slate-700 whitespace-pre-wrap">{{ inc.descripcionSolucion }}</p>
+                <div v-if="inc.foto && !fotoErrorMap[inc.id]" class="mt-2">
+                  <button type="button" @click="abrirFoto(inc.foto)">
+                    <img
+                      :src="getFotoUrl(inc.foto)"
+                      alt="Foto incidencia"
+                      class="h-32 w-32 object-cover shadow-sm transition hover:scale-105"
+                      @error="marcarFotoError(inc.id)"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabla para pantallas grandes -->
+            <div class="hidden md:block overflow-hidden rounded-xl border border-slate-200">
+              <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200 text-sm">
+                  <thead class="bg-slate-50">
+                    <tr>
+                      <th class="px-4 py-3 text-left font-semibold text-slate-700">Ubicación</th>
+                      <th class="px-4 py-3 text-left font-semibold text-slate-700">Categoría</th>
+                      <th class="px-4 py-3 text-left font-semibold text-slate-700">Profesor</th>
+                      <th class="px-4 py-3 text-left font-semibold text-slate-700">Descripción</th>
+                      <th class="px-4 py-3 text-left font-semibold text-slate-700">Imagen</th>
+                      <th class="px-4 py-3 text-left font-semibold text-slate-700">Estado</th>
+                      <th class="px-4 py-3 text-left font-semibold text-slate-700">Encargado</th>
+                      <th class="px-4 py-3 text-left font-semibold text-slate-700">Fecha Creación</th>
+                      <th class="px-4 py-3 text-left font-semibold text-slate-700">Fecha Cierre</th>
+                      <th class="px-4 py-3 text-left font-semibold text-slate-700">Solución</th>
+                      <th class="px-4 py-3 text-left font-semibold text-slate-700">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 bg-white">
+                    <tr v-for="inc in incidenciasFilteradas" :key="inc.id" class="hover:bg-slate-50">
+                      <td class="px-4 py-3 text-slate-700">{{ inc.ubicacion.codigo }} - {{ inc.ubicacion.descripcion }}</td>
+                      <td class="px-4 py-3 text-slate-700">{{ inc.categoria.nombre }}</td>
+                      <td class="px-4 py-3 text-slate-700">{{ inc.usuarioCreador?.nombre || '-' }}</td>
+                      <td class="px-4 py-3 align-top text-slate-700">
+                        <div>
+                          <button
+                            type="button"
+                            @click="abrirDescripcion(inc.descripcion)"
+                            class="max-w-3xs truncate text-left hover:underline"
+                          >
+                            {{ inc.descripcion }}
+                          </button>
+                          <p class="mt-1 text-xs text-slate-500">Haz clic para ver la descripción completa</p>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 text-slate-700">
+                        <div>
+                          <button
+                            v-if="inc.foto && !fotoErrorMap[inc.id]"
+                            type="button"
+                            @click="abrirFoto(inc.foto)"
+                          >
+                            <img
+                              :src="getFotoUrl(inc.foto)"
+                              alt="Foto incidencia"
+                              class="h-15 w-15 rounded object-cover shadow-sm transition hover:scale-105"
+                            />
+                          </button>
+                          <p v-if="inc.foto" class="mt-1 text-xs text-slate-500">Haz clic para ampliar la foto</p>
+                          <span v-else class="text-xs text-slate-500">No proporcionado</span>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3">
+                        <span :class="estadoBadgeClass(inc.estado)">{{ inc.estado }}</span>
+                      </td>
+                      <td class="px-4 py-3 text-slate-700">{{ inc.usuarioEncargado?.nombre || '-' }}</td>
+                      <td class="px-4 py-3 text-slate-600">{{ formatFecha(inc.fechaCreacion) }}</td>
+                      <td class="px-4 py-3 text-slate-600">{{ inc.fechaResolucion ? formatFecha(inc.fechaResolucion) : '-' }}</td>
+                      <td class="px-4 py-3 align-top text-slate-600">
                         <button
-                          @click="cambiarEstado(inc, 'REALIZADA')"
-                          class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700"
+                          v-if="inc.descripcionSolucion"
+                          type="button"
+                          @click="abrirDescripcion(inc.descripcionSolucion)"
+                          class="max-w-3xs truncate text-left hover:underline"
                         >
-                          Finalizar
+                          {{ inc.descripcionSolucion }}
                         </button>
-                      </template>
-                      <span v-else class="text-xs font-semibold text-slate-500">Finalizada</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                        <span v-else>-</span>
+                      </td>
+                      <td class="px-4 py-3">
+                        <button
+                          v-if="inc.estado === 'PENDIENTE'"
+                          @click="cambiarEstado(inc, 'EN_PROCESO')"
+                          class="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-700"
+                        >
+                          En Proceso
+                        </button>
+                        <template v-else-if="inc.estado === 'EN_PROCESO'">
+                          <button
+                            @click="cambiarEstado(inc, 'REALIZADA')"
+                            class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700"
+                          >
+                            Finalizar
+                          </button>
+                        </template>
+                        <span v-else class="text-xs font-semibold text-slate-500">Finalizada</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </section>
@@ -419,7 +476,7 @@
       <div class="border-b border-slate-200 pb-3">
         <h3 class="text-lg font-semibold text-slate-800">Descripción completa</h3>
       </div>
-      <p class="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-700">{{ vistaAmpliadaContenido }}</p>
+      <p class="mt-4 whitespace-pre-wrap text-lg text-slate-700">{{ vistaAmpliadaContenido }}</p>
     </div>
   </div>
 </template>
@@ -427,6 +484,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import AdminMenu from '../components/AdminMenu.vue'
 
 const todasIncidencias = ref([])
 const categorias = ref([])

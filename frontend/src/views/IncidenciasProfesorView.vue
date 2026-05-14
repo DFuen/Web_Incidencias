@@ -1,14 +1,14 @@
 <template>
   <div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-cyan-50 px-4 py-6 sm:px-6">
     <div class="mx-auto max-w-6xl space-y-6">
-      <h1 class="border-b-4 border-emerald-600 pb-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+      <h1 class="border-b-4 border-emerald-600 pb-3 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
         Mis Incidencias
       </h1>
 
-      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
         <button
           @click="mostrarFormulario = !mostrarFormulario"
-          class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+          class="w-full rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 sm:w-auto"
         >
           {{ mostrarFormulario ? 'Cancelar' : '+ Crear Nueva Incidencia' }}
         </button>
@@ -20,10 +20,8 @@
               <label class="mb-1 block text-sm font-semibold text-slate-700">Ubicacion (Aula) *</label>
               <select
                 v-model="nueva.ubicacionId"
-                @blur="validarUbicacion"
-                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
-              >
-                <option value="">Selecciona una ubicacion</option>
+                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2">
+                <option value="" disabled selected>Selecciona una ubicacion</option>
                 <option v-for="u in ubicaciones" :key="u.id" :value="u.id">
                   {{ u.codigo }} - {{ u.descripcion }}
                 </option>
@@ -36,10 +34,11 @@
               <select
                 v-model="nueva.categoriaId"
                 @blur="validarCategoria"
-                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
-              >
-                <option value="">Selecciona una categoria</option>
-                <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200">
+                <option value="" disabled selected>Selecciona una categoria</option>
+                <option v-for="c in categorias" :key="c.id" :value="c.id">
+                  {{ c.nombre }}
+                </option>
               </select>
               <span v-if="categoriaError" class="mt-1 block text-xs font-medium text-rose-600">{{ categoriaError }}</span>
             </div>
@@ -67,7 +66,7 @@
 
             <button
               type="submit"
-              class="rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
+              class="w-full rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700 sm:w-auto"
             >
               Enviar Incidencia
             </button>
@@ -83,8 +82,8 @@
         </div>
       </section>
 
-      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <h2 class="text-xl font-semibold text-slate-800">Historico de Mis Incidencias</h2>
+      <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <h2 class="text-lg font-semibold text-slate-800 sm:text-xl">Historico de Mis Incidencias</h2>
         <div
           v-if="incidencias.length === 0"
           class="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-slate-600"
@@ -109,7 +108,7 @@
                 <tr v-for="inc in incidencias" :key="inc.id" class="hover:bg-slate-50">
                   <td class="px-4 py-3 text-slate-700">{{ inc.ubicacion.codigo }} - {{ inc.ubicacion.descripcion }}</td>
                   <td class="px-4 py-3 text-slate-700">{{ inc.categoria.nombre }}</td>
-                  <td class="max-w-sm truncate px-4 py-3 text-slate-700">{{ inc.descripcion }}</td>
+                  <td class="max-w-xs truncate px-4 py-3 text-slate-700">{{ inc.descripcion }}</td>
                   <td class="px-4 py-3"><span :class="estadoBadgeClass(inc.estado)">{{ inc.estado }}</span></td>
                   <td class="px-4 py-3 text-slate-600">{{ formatFecha(inc.fechaCreacion) }}</td>
                   <td class="px-4 py-3 text-slate-600">{{ inc.fechaResolucion ? formatFecha(inc.fechaResolucion) : '-' }}</td>
@@ -126,12 +125,18 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import LogoutButton from "../components/LogoutButton.vue";
 
 const incidencias = ref([])
 const ubicaciones = ref([])
 const categorias = ref([])
 const mostrarFormulario = ref(false)
-const nueva = ref({ ubicacionId: '', categoriaId: '', descripcion: '', foto: null })
+const nueva = ref({
+  ubicacionId: '',
+  categoriaId: '',
+  descripcion: '',
+  foto: null
+})
 const ubicacionError = ref('')
 const categoriaError = ref('')
 const descripcionError = ref('')
@@ -142,25 +147,38 @@ const fetchData = async () => {
   try {
     const auth = localStorage.getItem('auth')
     const email = localStorage.getItem('user')
-    
+
+    // USUARIO
     const user = await axios.get('/api/usuarios/email/' + email, {
-      headers: { Authorization: 'Basic ' + auth }
+      headers: {
+        Authorization: 'Basic ' + auth
+      }
     })
-    
-    const res = await axios.get('/api/incidencias?usuarioId=' + user.data.id, {
-      headers: { Authorization: 'Basic ' + auth }
-    })
-    incidencias.value = res.data.content || res.data
-    
-    ubicaciones.value = (await axios.get('/api/ubicaciones', {
-      headers: { Authorization: 'Basic ' + auth }
-    })).data
-    
-    categorias.value = (await axios.get('/api/categorias', {
-      headers: { Authorization: 'Basic ' + auth }
-    })).data
+
+    // INCIDENCIAS
+    const incidenciasRes = await axios.get(
+      '/api/incidencias?usuarioId=' + user.data.id,
+      {
+        headers: {
+          Authorization: 'Basic ' + auth
+        }
+      }
+    )
+
+    incidencias.value =
+      incidenciasRes.data.content || incidenciasRes.data
+
+    // UBICACIONES
+    const ubicacionesRes = await axios.get('/api/ubicaciones')
+    ubicaciones.value = ubicacionesRes.data
+
+    // CATEGORIAS
+    const categoriasRes = await axios.get('/api/categorias')
+    categorias.value = categoriasRes.data
+
   } catch (error) {
-    console.error('Error al cargar datos:', error)
+    console.error('ERROR:', error)
+    formError.value = 'Error al cargar datos'
   }
 }
 
@@ -197,9 +215,16 @@ const crearIncidencia = async () => {
   try {
     const auth = localStorage.getItem('auth')
     const email = localStorage.getItem('user')
+
     const user = await axios.get('/api/usuarios/email/' + email, {
-      headers: { Authorization: 'Basic ' + auth }
+    headers: { Authorization: 'Basic ' + auth }
     })
+
+    if (!user.data) {
+      formError.value = 'Usuario no encontrado'
+      return
+    }
+
 
     let fotoPath = null
     if (nueva.value.foto) {
