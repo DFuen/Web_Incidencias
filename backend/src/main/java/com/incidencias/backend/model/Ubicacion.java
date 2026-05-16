@@ -22,6 +22,6 @@ public class Ubicacion {
 
     @NotBlank(message = "La descripción es obligatoria")
     @Column(nullable = false, length = 100)
-    private String descripcion;
+    private String nombre;
 
 }

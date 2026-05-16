@@ -26,4 +26,32 @@ public class UbicacionController {
     public Ubicacion create(@Valid @RequestBody Ubicacion ubicacion) {
         return ubicacionService.save(ubicacion);
     }
+
+    @PutMapping("/{id}")
+    public Ubicacion update(
+            @PathVariable Long id,
+            @Valid @RequestBody Ubicacion ubicacion
+    ) {
+
+        Ubicacion existente =
+                ubicacionService.findById(id);
+
+        existente.setCodigo(
+                ubicacion.getCodigo()
+        );
+
+        existente.setNombre(
+                ubicacion.getNombre()
+        );
+
+        return ubicacionService.save(existente);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(
+            @PathVariable Long id
+    ) {
+        ubicacionService.delete(id);
+    }
+
 }

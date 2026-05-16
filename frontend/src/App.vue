@@ -15,7 +15,7 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import LogoutButton from './components/LogoutButton.vue'
+import LogoutButton from './components/auth/LogoutButton.vue'
 
 const route = useRoute()
 const router = useRouter()

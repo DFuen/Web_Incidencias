@@ -19,7 +19,7 @@
 import { ref } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
-import LoginForm from '../components/LoginForm.vue'
+import LoginForm from '../components/auth/LoginForm.vue'
 
 const email = ref('')
 const password = ref('')
