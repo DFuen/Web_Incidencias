@@ -28,11 +28,26 @@ public class UsuarioController {
         if (rol != null && !rol.isBlank()) {
             return usuarioService.findByRol(rol);
         }
-        return usuarioService.findByRol("administrador");
+
+        return usuarioService.findAll();
     }
 
     @PostMapping
     public Usuario create(@Valid @RequestBody Usuario usuario) {
         return usuarioService.save(usuario);
     }
+
+    @PutMapping("/{id}")
+    public Usuario update(
+            @PathVariable Long id,
+            @RequestBody Usuario usuario
+    ) {
+        return usuarioService.update(id, usuario);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        usuarioService.delete(id);
+    }
+
 }

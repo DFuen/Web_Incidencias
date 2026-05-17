@@ -106,7 +106,7 @@ public class IncidenciaController {
         long resueltas = todas.stream().filter(i -> i.getEstado() == Incidencia.EstadoIncidencia.REALIZADA).count();
         double tiempoMedio = todas.stream().filter(i -> i.getEstado() == Incidencia.EstadoIncidencia.REALIZADA && i.getFechaResolucion() != null)
             .mapToLong(i -> java.time.Duration.between(i.getFechaCreacion(), i.getFechaResolucion()).toHours()).average().orElse(0);
-        var topUbicaciones = todas.stream().collect(Collectors.groupingBy(i -> i.getUbicacion().getDescripcion(), Collectors.counting()))
+        var topUbicaciones = todas.stream().collect(Collectors.groupingBy(i -> i.getUbicacion().getNombre(), Collectors.counting()))
             .entrySet().stream().sorted(Map.Entry.<String, Long>comparingByValue().reversed()).limit(5).collect(Collectors.toList());
         var topCategorias = todas.stream().collect(Collectors.groupingBy(i -> i.getCategoria().getNombre(), Collectors.counting()))
             .entrySet().stream().sorted(Map.Entry.<String, Long>comparingByValue().reversed()).limit(5).collect(Collectors.toList());
