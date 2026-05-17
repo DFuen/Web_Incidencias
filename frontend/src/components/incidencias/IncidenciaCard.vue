@@ -6,7 +6,7 @@
       <div>
         <h3 class="text-base font-semibold text-slate-800">
           {{ incidencia.ubicacion.codigo }} -
-          {{ incidencia.ubicacion.descripcion }}
+          {{ incidencia.ubicacion.nombre }}
         </h3>
 
         <p class="mt-1 text-sm text-slate-500">

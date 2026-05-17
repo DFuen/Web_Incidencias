@@ -40,7 +40,7 @@
               :key="u.id"
               :value="u.id"
             >
-              {{ u.codigo }} - {{ u.descripcion }}
+              {{ u.codigo }} - {{ u.nombre }}
             </option>
           </select>
 

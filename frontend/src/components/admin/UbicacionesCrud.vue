@@ -1,70 +1,70 @@
 <template>
-  <div>
-    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-bold text-slate-800">
-          Ubicaciones
-        </h2>
+  <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <h2 class="text-xl font-bold text-slate-800 sm:text-2xl">
+        Ubicaciones
+      </h2>
 
-        <button
-          @click="abrirCrear"
-          class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700"
-        >
-          Nueva Ubicación
-        </button>
-      </div>
+      <button
+        @click="abrirCrear"
+        class="w-full rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700 sm:w-auto"
+      >
+        Nueva Ubicación
+      </button>
+    </div>
 
-      <div class="mt-6 overflow-hidden rounded-xl border border-slate-200">
-        <table class="min-w-full divide-y divide-slate-200">
-          <thead class="bg-slate-50">
-            <tr>
-              <th class="px-4 py-3 text-left text-sm font-semibold text-slate-700">
-                Código
-              </th>
-              <th class="px-4 py-3 text-left text-sm font-semibold text-slate-700">
-                Nombre
-              </th>
-              <th class="px-4 py-3 text-left text-sm font-semibold text-slate-700">
-                Acciones
-              </th>
-            </tr>
-          </thead>
+    <div
+      v-if="ubicaciones.length"
+      class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+    >
+      <article
+        v-for="ubicacion in ubicaciones"
+        :key="ubicacion.id"
+        class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md"
+      >
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h3 class="text-base font-bold text-slate-800">
+              {{ ubicacion.nombre }}
+            </h3>
 
-          <tbody class="divide-y divide-slate-100 bg-white">
-            <tr
-              v-for="ubicacion in ubicaciones"
-              :key="ubicacion.id"
-            >
-              <td class="px-4 py-3 text-slate-700">
+            <p class="mt-1 text-sm text-slate-600">
+              Código:
+              <span class="font-semibold text-slate-800">
                 {{ ubicacion.codigo }}
-              </td>
+              </span>
+            </p>
+          </div>
 
-              <td class="px-4 py-3 text-slate-700">
-                {{ ubicacion.nombre }}
-              </td>
+          <span class="shrink-0 rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
+            {{ ubicacion.codigo }}
+          </span>
+        </div>
 
-              <td class="px-4 py-3">
-                <div class="flex gap-2">
-                  <button
-                    @click="editarUbicacion(ubicacion)"
-                    class="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600"
-                  >
-                    Editar
-                  </button>
+        <div class="mt-5 grid grid-cols-2 gap-2">
+          <button
+            @click="editarUbicacion(ubicacion)"
+            class="rounded-lg bg-amber-500 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-600"
+          >
+            Editar
+          </button>
 
-                  <button
-                    @click="eliminarUbicacion(ubicacion.id)"
-                    class="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+          <button
+            @click="eliminarUbicacion(ubicacion.id)"
+            class="rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700"
+          >
+            Eliminar
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <div
+      v-else
+      class="mt-6 rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500"
+    >
+      No hay ubicaciones para mostrar.
+    </div>
 
     <UbicacionModal
       :visible="modalVisible"
@@ -72,7 +72,7 @@
       @close="modalVisible = false"
       @save="guardarUbicacion"
     />
-  </div>
+  </section>
 </template>
 
 <script setup>

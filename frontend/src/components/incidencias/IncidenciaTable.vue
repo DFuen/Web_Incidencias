@@ -82,7 +82,7 @@
             
             <td class="px-4 py-3 text-slate-700">
               {{ inc.ubicacion.codigo }} -
-              {{ inc.ubicacion.descripcion }}
+              {{ inc.ubicacion.nombre }}
             </td>
 
             <td class="px-4 py-3 text-slate-700">
