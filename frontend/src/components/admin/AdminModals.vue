@@ -18,7 +18,6 @@
 </template>
 
 <script setup>
-// Este componente se encarga de gestionar los modales relacionados con las incidencias en el panel de administración.
 import VistaAmpliadaModal from '../incidencias/VistaAmpliadaModal.vue'
 import CerrarIncidenciaModal from '../incidencias/CerrarIncidenciaModal.vue'
 

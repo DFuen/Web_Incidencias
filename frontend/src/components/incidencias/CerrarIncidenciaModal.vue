@@ -58,7 +58,7 @@ const props = defineProps({
   incidencia: Object
 })
 
-const emit = defineEmits(['close', 'confirmar'])
+const emit = defineEmits(['close', 'confirm'])
 
 const descripcion = ref('')
 
@@ -73,6 +73,6 @@ watch(
 )
 
 const confirmar = () => {
-  emit('confirmar', descripcion.value)
+  emit('confirm', descripcion.value?.trim() || '')
 }
 </script>

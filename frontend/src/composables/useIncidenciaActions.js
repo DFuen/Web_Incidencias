@@ -59,7 +59,7 @@ export const useIncidenciaActions = (fetchData) => {
     await actualizarEstado(
       incidenciaSeleccionada.value,
       'REALIZADA',
-      descripcion
+      descripcion?.trim() || ''
     )
 
     modalCerrarVisible.value = false
@@ -88,7 +88,8 @@ export const useIncidenciaActions = (fetchData) => {
 
   const abrirDescripcion = (descripcion) => {
     vistaAmpliadaTipo.value = 'descripcion'
-    vistaAmpliadaContenido.value = descripcion
+    vistaAmpliadaContenido.value =
+      descripcion?.trim() || 'Sin descripción'
     vistaAmpliadaVisible.value = true
   }
 
