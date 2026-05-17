@@ -1,6 +1,6 @@
 <template>
   <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-    
+
     <button
       @click="mostrarFormulario = !mostrarFormulario"
       class="w-full rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 sm:w-auto"
@@ -20,7 +20,7 @@
         @submit.prevent="crearIncidencia"
         class="mt-4 space-y-4"
       >
-        
+
         <!-- UBICACION -->
         <div>
           <label class="mb-1 block text-sm font-semibold text-slate-700">
@@ -40,7 +40,7 @@
               :key="u.id"
               :value="u.id"
             >
-              {{ u.codigo }} - {{ u.descripcion }}
+              {{ u.codigo }} - {{ u.nombre }}
             </option>
           </select>
 
@@ -106,15 +106,49 @@
         <!-- FOTO -->
         <div>
           <label class="mb-1 block text-sm font-semibold text-slate-700">
-            Foto (Opcional)
+            Foto de la incidencia
           </label>
 
-          <input
-            type="file"
-            accept="image/png, image/jpeg"
-            @change="onFileChange"
-            class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
-          />
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <label
+              class="inline-flex cursor-pointer items-center justify-center rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-900"
+            >
+              Seleccionar imagen
+
+              <input
+                type="file"
+                accept="image/png, image/jpeg"
+                class="hidden"
+                @change="onFileChange"
+              />
+            </label>
+
+            <button
+              v-if="nueva.foto"
+              type="button"
+              @click="quitarFoto"
+              class="rounded-lg border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50"
+            >
+              Quitar imagen
+            </button>
+          </div>
+
+          <p
+            v-if="nueva.foto"
+            class="mt-2 text-sm text-slate-600"
+          >
+            Imagen seleccionada:
+            <span class="font-medium text-slate-800">
+              {{ nueva.foto.name }}
+            </span>
+          </p>
+
+          <p
+            v-else
+            class="mt-2 text-xs text-slate-500"
+          >
+            Puedes adjuntar una imagen PNG o JPG para ayudar a identificar el problema.
+          </p>
         </div>
 
         <!-- BOTON -->
@@ -174,6 +208,10 @@ const formSuccess = ref('')
 
 const onFileChange = (e) => {
   nueva.value.foto = e.target.files[0]
+}
+
+const quitarFoto = () => {
+  nueva.value.foto = null
 }
 
 const validar = () => {
