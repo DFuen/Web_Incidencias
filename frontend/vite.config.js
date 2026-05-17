@@ -3,11 +3,10 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [vue(), tailwindcss()],
-  logLevel: 'warn',
-  server: {
-    proxy: {
-      '/api': 'http://localhost:8080'
-    }
+  plugins: [vue()],
+  preview: {
+    allowedHosts: [
+      'webincidencias-production.up.railway.app'
+    ]
   }
 })

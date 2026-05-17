@@ -3,6 +3,8 @@ import App from './App.vue'
 import router from './router'
 import axios from 'axios'
 import './tailwind.css'
+
+axios.defaults.baseURL = import.meta.env.VITE_API_URL
 //import './assets/styles/admin.css'
 //import './assets/styles/buttons.css'
 //import './assets/styles/forms.css'
@@ -12,7 +14,7 @@ import './tailwind.css'
 //import './assets/styles/animations.css'
 //import './assets/styles/layout.css'
 
-axios.defaults.baseURL = 'http://localhost:8080'
+//axios.defaults.baseURL = 'http://localhost:8080'
 
 const app = createApp(App)
 app.use(router)
