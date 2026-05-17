@@ -28,12 +28,14 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
             .authorizeHttpRequests(auth -> auth
+
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                 .requestMatchers("/api/incidencias/**").authenticated()
                 .requestMatchers("/api/usuarios/**").authenticated()
                 .requestMatchers("/api/categorias/**").authenticated()
                 .requestMatchers("/api/ubicaciones/**").authenticated()
+                .requestMatchers("/api/files/**").authenticated()
 
                 .anyRequest().permitAll()
             )
