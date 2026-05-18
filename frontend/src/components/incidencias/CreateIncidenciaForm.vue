@@ -149,6 +149,7 @@
 <script setup>
 import { ref } from 'vue'
 import axios from 'axios'
+import imageCompression from 'browser-image-compression'
 
 const emit = defineEmits(['created'])
 
@@ -172,8 +173,32 @@ const descripcionError = ref('')
 const formError = ref('')
 const formSuccess = ref('')
 
-const onFileChange = (e) => {
-  nueva.value.foto = e.target.files[0]
+const onFileChange = async (e) => {
+
+  const file = e.target.files[0]
+
+  if (!file) return
+
+  try {
+
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1600,
+      useWebWorker: true
+    }
+
+    const compressedFile =
+      await imageCompression(file, options)
+
+    nueva.value.foto = compressedFile
+
+  } catch (error) {
+
+    console.error(error)
+
+    formError.value =
+      'Error al procesar la imagen'
+  }
 }
 
 const validar = () => {
