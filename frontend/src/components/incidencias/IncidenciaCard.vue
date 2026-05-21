@@ -29,8 +29,17 @@
       </p>
 
       <p>
-        <span class="font-semibold">Fecha:</span>
+        <span class="font-semibold">Fecha creación:</span>
         {{ formatFecha(incidencia.fechaCreacion) }}
+      </p>
+
+      <p>
+        <span class="font-semibold">Fecha cierre:</span>
+        {{
+          incidencia.fechaResolucion
+            ? formatFecha(incidencia.fechaResolucion)
+            : '-'
+        }}
       </p>
     </div>
 
