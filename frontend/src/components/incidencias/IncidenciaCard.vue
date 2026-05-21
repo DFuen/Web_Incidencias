@@ -29,8 +29,17 @@
       </p>
 
       <p>
-        <span class="font-semibold">Fecha:</span>
+        <span class="font-semibold">Fecha creación:</span>
         {{ formatFecha(incidencia.fechaCreacion) }}
+      </p>
+
+      <p>
+        <span class="font-semibold">Fecha cierre:</span>
+        {{
+          incidencia.fechaResolucion
+            ? formatFecha(incidencia.fechaResolucion)
+            : '-'
+        }}
       </p>
     </div>
 
@@ -81,7 +90,7 @@
       </button>
     </div>
 
-    <div class="mt-5">
+    <div v-if="mostrarAcciones" class="mt-5">
       <button
         v-if="incidencia.estado === 'PENDIENTE'"
         @click="cambiarEstado(incidencia, 'EN_PROCESO')"
@@ -140,6 +149,10 @@ defineProps({
   cambiarEstado: {
     type: Function,
     required: true
+  },
+  mostrarAcciones: {
+  type: Boolean,
+  default: true
   }
 })
 

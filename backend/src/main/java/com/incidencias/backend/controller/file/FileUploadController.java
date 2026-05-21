@@ -1,48 +1,47 @@
 package com.incidencias.backend.controller.file;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/files")
 public class FileUploadController {
-    private static final String UPLOAD_DIR = "uploads";
+
+    private final Cloudinary cloudinary;
+
+    public FileUploadController(Cloudinary cloudinary) {
+        this.cloudinary = cloudinary;
+    }
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("Archivo vacío");
         }
-        try {
-            String ext = StringUtils.getFilenameExtension(file.getOriginalFilename());
-            String filename = UUID.randomUUID() + (ext != null ? "." + ext : "");
-            Path uploadPath = Paths.get(UPLOAD_DIR);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-            Path filePath = uploadPath.resolve(filename);
-            file.transferTo(filePath);
-            return ResponseEntity.ok("/api/files/" + filename);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al subir archivo");
-        }
-    }
 
-    @GetMapping("/{filename}")
-    public ResponseEntity<byte[]> getFile(@PathVariable String filename) throws IOException {
-        Path filePath = Paths.get(UPLOAD_DIR).resolve(filename);
-        if (!Files.exists(filePath)) {
-            return ResponseEntity.notFound().build();
+        try {
+            Map uploadResult = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    ObjectUtils.asMap(
+                            "folder", "incidencias"
+                    )
+            );
+
+            String imageUrl = uploadResult.get("secure_url").toString();
+
+            return ResponseEntity.ok(imageUrl);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al subir archivo");
         }
-        byte[] fileBytes = Files.readAllBytes(filePath);
-        return ResponseEntity.ok().body(fileBytes);
     }
 }

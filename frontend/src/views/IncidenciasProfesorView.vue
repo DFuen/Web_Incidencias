@@ -18,15 +18,16 @@
         {{ formError }}
       </p>
 
-      <!-- Formulario para crear nueva incidencia -->
       <CreateIncidenciaForm
         :ubicaciones="ubicaciones"
         :categorias="categorias"
-        @created="fetchData"
+        @created="recargarIncidencias"
       />
 
-      <!-- Historial de incidencias -->
-      <HistoricoTable :incidencias="incidencias" />
+      <HistoricoTable
+        :key="historialKey"
+        :incidencias="incidencias"
+      />
     </div>
   </div>
 </template>
@@ -35,24 +36,35 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-// COMPONENTES
 import HistoricoTable from '../components/incidencias/HistoricoTable.vue'
 import CreateIncidenciaForm from '../components/incidencias/CreateIncidenciaForm.vue'
 
-// ESTADOS
 const incidencias = ref([])
 const ubicaciones = ref([])
 const categorias = ref([])
 const formError = ref('')
 const loading = ref(false)
+const historialKey = ref(0)
 
-// FUNCIONES
 const getAuthHeaders = () => {
   const auth = localStorage.getItem('auth')
 
   return {
     Authorization: 'Basic ' + auth
   }
+}
+
+const normalizarRespuestaArray = (data) => {
+  if (Array.isArray(data)) return data
+
+  if (Array.isArray(data?.content)) return data.content
+
+  return []
+}
+
+const recargarIncidencias = async () => {
+  await fetchData()
+  historialKey.value++
 }
 
 const fetchData = async () => {
@@ -66,26 +78,35 @@ const fetchData = async () => {
       headers: getAuthHeaders()
     })
 
-    const incidenciasRes = await axios.get(
-      '/api/incidencias?usuarioId=' + user.data.id,
-      {
+    const [
+      incidenciasRes,
+      ubicacionesRes,
+      categoriasRes
+    ] = await Promise.all([
+      axios.get('/api/incidencias?usuarioId=' + user.data.id, {
         headers: getAuthHeaders()
-      }
-    )
+      }),
 
-    incidencias.value = incidenciasRes.data.content || incidenciasRes.data
+      axios.get('/api/ubicaciones', {
+        headers: getAuthHeaders()
+      }),
 
-    const ubicacionesRes = await axios.get('/api/ubicaciones', {
-      headers: getAuthHeaders()
-    })
+      axios.get('/api/categorias', {
+        headers: getAuthHeaders()
+      })
+    ])
 
-    ubicaciones.value = ubicacionesRes.data
+    incidencias.value = [
+      ...normalizarRespuestaArray(incidenciasRes.data)
+    ]
 
-    const categoriasRes = await axios.get('/api/categorias', {
-      headers: getAuthHeaders()
-    })
+    ubicaciones.value = [
+      ...normalizarRespuestaArray(ubicacionesRes.data)
+    ]
 
-    categorias.value = categoriasRes.data
+    categorias.value = [
+      ...normalizarRespuestaArray(categoriasRes.data)
+    ]
   } catch (error) {
     console.error('ERROR:', error)
     formError.value = 'Error al cargar datos'

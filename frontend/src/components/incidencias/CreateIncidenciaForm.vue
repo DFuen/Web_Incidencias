@@ -1,6 +1,5 @@
 <template>
   <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-    
     <button
       @click="mostrarFormulario = !mostrarFormulario"
       class="w-full rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 sm:w-auto"
@@ -16,12 +15,7 @@
         Reportar Nueva Incidencia
       </h2>
 
-      <form
-        @submit.prevent="crearIncidencia"
-        class="mt-4 space-y-4"
-      >
-        
-        <!-- UBICACION -->
+      <form @submit.prevent="crearIncidencia" class="mt-4 space-y-4">
         <div>
           <label class="mb-1 block text-sm font-semibold text-slate-700">
             Ubicación (Aula) *
@@ -31,9 +25,7 @@
             v-model="nueva.ubicacionId"
             class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
           >
-            <option value="">
-              Selecciona una ubicación
-            </option>
+            <option value="">Selecciona una ubicación</option>
 
             <option
               v-for="u in ubicaciones"
@@ -52,7 +44,6 @@
           </span>
         </div>
 
-        <!-- CATEGORIA -->
         <div>
           <label class="mb-1 block text-sm font-semibold text-slate-700">
             Categoría *
@@ -62,9 +53,7 @@
             v-model="nueva.categoriaId"
             class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
           >
-            <option value="">
-              Selecciona una categoría
-            </option>
+            <option value="">Selecciona una categoría</option>
 
             <option
               v-for="c in categorias"
@@ -83,7 +72,6 @@
           </span>
         </div>
 
-        <!-- DESCRIPCION -->
         <div>
           <label class="mb-1 block text-sm font-semibold text-slate-700">
             Descripción del Problema *
@@ -103,13 +91,13 @@
           </span>
         </div>
 
-        <!-- FOTO -->
         <div>
           <label class="mb-1 block text-sm font-semibold text-slate-700">
             Foto (Opcional)
           </label>
 
           <input
+            ref="fileInput"
             type="file"
             accept="image/png, image/jpeg"
             @change="onFileChange"
@@ -117,15 +105,14 @@
           />
         </div>
 
-        <!-- BOTON -->
         <button
           type="submit"
-          class="w-full rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700 sm:w-auto"
+          :disabled="creating"
+          class="w-full rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
         >
-          Enviar Incidencia
+          {{ creating ? 'Enviando...' : 'Enviar Incidencia' }}
         </button>
 
-        <!-- MENSAJES -->
         <span
           v-if="formError"
           class="block rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700"
@@ -139,16 +126,15 @@
         >
           {{ formSuccess }}
         </span>
-
       </form>
     </div>
-
   </section>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import axios from 'axios'
+import imageCompression from 'browser-image-compression'
 
 const emit = defineEmits(['created'])
 
@@ -158,6 +144,8 @@ defineProps({
 })
 
 const mostrarFormulario = ref(false)
+const creating = ref(false)
+const fileInput = ref(null)
 
 const nueva = ref({
   ubicacionId: '',
@@ -172,8 +160,23 @@ const descripcionError = ref('')
 const formError = ref('')
 const formSuccess = ref('')
 
-const onFileChange = (e) => {
-  nueva.value.foto = e.target.files[0]
+const onFileChange = async (e) => {
+  const file = e.target.files[0]
+
+  if (!file) return
+
+  try {
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1600,
+      useWebWorker: true
+    }
+
+    nueva.value.foto = await imageCompression(file, options)
+  } catch (error) {
+    console.error(error)
+    formError.value = 'Error al procesar la imagen'
+  }
 }
 
 const validar = () => {
@@ -185,7 +188,7 @@ const validar = () => {
     ? 'La categoría es obligatoria'
     : ''
 
-  descripcionError.value = !nueva.value.descripcion
+  descripcionError.value = !nueva.value.descripcion?.trim()
     ? 'La descripción es obligatoria'
     : ''
 
@@ -205,75 +208,59 @@ const crearIncidencia = async () => {
     return
   }
 
+  creating.value = true
+
   try {
     const auth = localStorage.getItem('auth')
     const email = localStorage.getItem('user')
 
-    const user = await axios.get(
-      '/api/usuarios/email/' + email,
-      {
-        headers: {
-          Authorization: 'Basic ' + auth
-        }
+    const user = await axios.get('/api/usuarios/email/' + email, {
+      headers: {
+        Authorization: 'Basic ' + auth
       }
-    )
+    })
 
     let fotoPath = null
 
     if (nueva.value.foto) {
       const formData = new FormData()
-
       formData.append('file', nueva.value.foto)
 
-      const uploadRes = await axios.post(
-        '/api/files/upload',
-        formData,
-        {
-          headers: {
-            Authorization: 'Basic ' + auth,
-            'Content-Type': 'multipart/form-data'
-          }
+      const uploadRes = await axios.post('/api/files/upload', formData, {
+        headers: {
+          Authorization: 'Basic ' + auth,
+          'Content-Type': 'multipart/form-data'
         }
-      )
+      })
 
       fotoPath =
         typeof uploadRes.data === 'string'
           ? uploadRes.data
-          : null
+          : uploadRes.data?.path || uploadRes.data?.url || null
     }
 
     const incidencia = {
       ubicacion: {
         id: parseInt(nueva.value.ubicacionId)
       },
-
       categoria: {
         id: parseInt(nueva.value.categoriaId)
       },
-
-      descripcion: nueva.value.descripcion,
-
+      descripcion: nueva.value.descripcion.trim(),
       usuarioCreador: {
         id: user.data.id
       },
-
       foto: fotoPath,
-
       estado: 'PENDIENTE'
     }
 
-    await axios.post(
-      '/api/incidencias',
-      incidencia,
-      {
-        headers: {
-          Authorization: 'Basic ' + auth
-        }
+    await axios.post('/api/incidencias', incidencia, {
+      headers: {
+        Authorization: 'Basic ' + auth
       }
-    )
+    })
 
-    formSuccess.value =
-      '¡Incidencia creada correctamente!'
+    formSuccess.value = '¡Incidencia creada correctamente!'
 
     nueva.value = {
       ubicacionId: '',
@@ -282,15 +269,18 @@ const crearIncidencia = async () => {
       foto: null
     }
 
+    if (fileInput.value) {
+      fileInput.value.value = ''
+    }
+
     mostrarFormulario.value = false
 
     emit('created')
-
   } catch (error) {
     console.error(error)
-
-    formError.value =
-      'Error al crear la incidencia'
+    formError.value = 'Error al crear la incidencia'
+  } finally {
+    creating.value = false
   }
 }
 </script>
